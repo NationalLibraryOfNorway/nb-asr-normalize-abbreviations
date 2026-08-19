@@ -71,3 +71,37 @@ def test_strict_fields_rejects_non_string() -> None:
             normalizer=TextNormalizer(),
             strict_fields=True,
         )
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("1000", "1 000"),
+        ("25000", "25 000"),
+        ("1000000", "1 000 000"),
+        ("12.345,67", "12 345,67"),
+        ("1.000.000", "1 000 000"),
+        ("0.5", "0,5"),
+        ("1234.56", "1 234,56"),
+        ("1000.5", "1 000,5"),
+        ("-1000.5", "-1 000,5"),
+        ("17.05.1814", "17.05.1814"),
+        ("20.08.2026", "20.08.2026"),
+        ("2026-08-19", "2026-08-19"),
+        ("17. mai", "17. mai"),
+        ("Det var 1000.", "Det var 1 000."),
+        ("<NUM>", "<NUM>"),
+        ("192.168.1.1", "192.168.1.1"),
+        ("v1.0.0", "v1.0.0"),
+    ],
+)
+def test_normalizes_norwegian_number_formats(source: str, expected: str) -> None:
+    assert TextNormalizer().normalize(source) == expected
+
+
+def test_ignore_number_normalisations() -> None:
+    normalizer = TextNormalizer(normalize_numbers=False)
+    assert normalizer.normalize("Det var 1000 og 1234.56 kroner.") == (
+        "Det var 1000 og 1234.56 kroner."
+    )
+

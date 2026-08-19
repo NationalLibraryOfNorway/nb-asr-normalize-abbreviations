@@ -1,6 +1,6 @@
 # Spesifikasjon for Normalisering av Norsk ASR-Tekst
 
-**Dokumentversjon:** 1.0.0  
+**Dokumentversjon:** 1.1.0  
 **Status:** Offisiell spesifikasjon og implementasjonsveiledning  
 **Målgruppe:** Utviklere, samarbeidspartnere og databehandlere innen Automatisk Talegjenkjenning (ASR)
 
@@ -13,6 +13,7 @@ Dette dokumentet definerer den offisielle spesifikasjonen for normalisering av t
 1. Ekspandere høyfrekvente, entydige norske prosa-forkortelser til sin fullstendige skriftlige form (f.eks. `f.eks.` $\rightarrow$ `for eksempel`).
 2. Kanonisere utskrevne eller ustandardiserte tekniske, medisinske, juridiske og vitenskapelige måleenheter til standard SI-symboler og enheter (f.eks. `5 kilometer` $\rightarrow$ `5 km`), **kun når de følger et sifferbasert tall eller en numerisk plassholder**.
 3. Bevare uendret den talemåtenære formen dersom tall er skrevet med ord (f.eks. `fem kilometer` skal **ikke** endres).
+4. Normalisere tallformatering til norsk standard (Språkrådets regler): Bruke mellomrom som tusenskille for 4-sifrede og større tall, og komma som desimalskilletegn (f.eks. `1000` $\rightarrow$ `1 000`, `25000` $\rightarrow$ `25 000`, `1.000.000` $\rightarrow$ `1 000 000`, `1234.56` $\rightarrow$ `1 234,56`).
 
 Spesifikasjonen er utformet for å være **konservativ og deterministisk**, slik at utilsiktet endring av semantikk eller kontekst unngås.
 
@@ -24,14 +25,15 @@ Spesifikasjonen er utformet for å være **konservativ og deterministisk**, slik
 Måleenheter og enhetsforkortelser skal **kun** konverteres dersom de umiddelbart etterfølger et tall i sifferform eller plassholderen `<NUM>`.
 
 * **Regel:** Et tall defineres av mønsteret `NUMBER_PATTERN`:
-  $$\text{NUMBER\_PATTERN} = \texttt{(?:<NUM>|[+-]?\d+(?:[.,]\d+)?(?:\s*[–-]\s*[+-]?\d+(?:[.,]\d+)?)?)}$$
-  Dette dekker heltall, desimaltall (med enten komma eller punktum), tallområder/intervall (f.eks. `5–10` eller `1-2`), samt plassholderen `<NUM>`.
+  $$\text{NUMBER\_PATTERN} = \texttt{(?:<NUM>|[+-]?(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)(?:[.,]\d+)?(?:\s*[–-]\s*[+-]?(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)(?:[.,]\d+)?)?)}$$
+  Dette dekker heltall (både uformaterte `1000` og mellomrom-grupperte `1 000`), desimaltall (med komma eller punktum), tallområder/intervall (f.eks. `5–10` eller `1 000–2 000`), samt plassholderen `<NUM>`.
 
 * **Eksempler på gyldig konvertering:**
   * `5 kilometer` $\rightarrow$ `5 km`
+  * `1000 kilometer` $\rightarrow$ `1 000 km`
   * `<NUM> milligram` $\rightarrow$ `<NUM> mg`
   * `100 cm3` $\rightarrow$ `100 cm³`
-  * `0.5 til 1.5 millimol per liter` $\rightarrow$ `0.5 til 1.5 mmol/l`
+  * `0.5 til 1.5 millimol per liter` $\rightarrow$ `0,5 til 1,5 mmol/l`
 
 * **Eksempler på sperret (uendret) tekst:**
   * `fem kilometer` $\rightarrow$ `fem kilometer` *(skrevet tallord skal bevares)*
@@ -50,16 +52,45 @@ For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresse
 
 ---
 
-### 2.3 Prioriteringsrekkefølge (Mest spesifikk til minst spesifikk)
+### 2.3 Norsk Tallformatering (Tusenskille og desimalskilletegn)
+På norsk brukes enkelt mellomrom som tusenskille og komma som desimalskilletegn. Normaliseringen utfører følgende tilpasninger:
+
+1. **Tusenskille for 4-sifrede og større tall:**
+   * Firesifrede heltall og større tall grupperes med mellomrom fra høyre i puljer på 3 siffer.
+   * `1000` $\rightarrow$ `1 000`
+   * `25000` $\rightarrow$ `25 000`
+   * `1000000` $\rightarrow$ `1 000 000`
+   * `12345678` $\rightarrow$ `12 345 678`
+2. **Feilaktige punktum-tusenskiller:**
+   * Punktum brukt uanbefalt som tusenskille erstattes med mellomrom når det etterfølges av nøyaktig 3 siffer.
+   * `1.000` $\rightarrow$ `1 000`
+   * `1.000.000` $\rightarrow$ `1 000 000`
+3. **Desimalskilletegn:**
+   * Komma `,` er standard desimalskilletegn på norsk.
+   * Punktum brukt som desimalskilletegn etter et tall konverteres til komma.
+   * `0.5` $\rightarrow$ `0,5`
+   * `1234.56` $\rightarrow$ `1 234,56`
+   * `1000,5` $\rightarrow$ `1 000,5`
+4. **Unntak og skåneregler (Edge cases):**
+   * **Datoer:** Fullstendige datoer som `17.05.1814`, `20.08.2026`, `2026-08-19` og `17/05/1814` bevares uendret.
+   * **Ordenstall:** Punktum etter tall etterfulgt av mellomrom og bokstav/ord (f.eks. `17. mai`, `1. plass`, `paragraf 1.`) representerer ordenstall og skal bevares.
+   * **Plassholdere:** Spesialtegn som `<NUM>` berøres ikke.
+   * **Versjonsnumre og IP-adresser:** Tekst som `v1.0.0` og `192.168.1.1` skal ikke endres.
+5. **Kjøringsvalg:** Tallnormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
+
+---
+
+### 2.4 Prioriteringsrekkefølge (Mest spesifikk til minst spesifikk)
 Ved matching av tekst må regler evalueres i en bestemt rekkefølge for å unngå at kortere mønstre "stjeler" prefikser fra lengre og mer spesifikke mønstre.
 
 1. **Unicode-normalisering:** Erstatt ustandardiserte mellomrom (`\u00a0`, `\u202f` $\rightarrow$ ` `) og gresk mu (`μ` $\rightarrow$ `µ`).
-2. **Prosa-forkortelser:** Ekspander vanlige forkortelser (`GENERAL_ABBREVIATIONS`).
-3. **Paragraf- og spesialregler:** Håndter `paragraf` / `paragrafene`.
-4. **Ustandardiserte enhets-aliaser:** Rett opp ASCII-varianter og ustandardiserte tegn (`UNIT_ALIASES`, f.eks. `kwh` $\rightarrow$ `kWh`, `cm3` $\rightarrow$ `cm³`).
-5. **Utskrevne enhets-uttrykk:** Konverter sammensatte og lange enheter før enkle enheter (`UNIT_EXPRESSIONS`, f.eks. `millimol per liter` før `millimol`, `kubikkkilometer` før `kubikkmeter`).
-6. **Mellomrom ved symboler:** Sikre korrekt mellomrom før `%`, `‰`, `°C` og `°F`.
-7. **Whitespace-normalisering:** Reduser multiple vanlige mellomrom/tabulatorer til enkelt mellomrom per linje, samtidig som linjeskift bevares.
+2. **Norsk tallformatering:** Formatering av tusenskiller og desimalskilletegn (`_normalize_number_format`).
+3. **Prosa-forkortelser:** Ekspander vanlige forkortelser (`GENERAL_ABBREVIATIONS`).
+4. **Paragraf- og spesialregler:** Håndter `paragraf` / `paragrafene`.
+5. **Ustandardiserte enhets-aliaser:** Rett opp ASCII-varianter og ustandardiserte tegn (`UNIT_ALIASES`, f.eks. `kwh` $\rightarrow$ `kWh`, `cm3` $\rightarrow$ `cm³`).
+6. **Utskrevne enhets-uttrykk:** Konverter sammensatte og lange enheter før enkle enheter (`UNIT_EXPRESSIONS`, f.eks. `millimol per liter` før `millimol`, `kubikkkilometer` før `kubikkmeter`).
+7. **Mellomrom ved symboler:** Sikre korrekt mellomrom før `%`, `‰`, `°C` og `°F`.
+8. **Whitespace-normalisering:** Reduser multiple vanlige mellomrom/tabulatorer til enkelt mellomrom per linje, samtidig som linjeskift bevares.
 
 ---
 
@@ -249,26 +280,46 @@ python3 scripts/clean_asr_jsonl.py \
   --overwrite
 ```
 
+Dersom du ønsker å deaktivere norsk tallformatering:
+```bash
+python3 scripts/clean_asr_jsonl.py \
+  --input_file inndata.jsonl \
+  --output_file utdata.jsonl \
+  --ignore_number_normalisations
+```
+
 ### 4.4 Verifikasjonstestsett
 Implementasjonen skal bestå verifikasjonstester tilsvarende følgende testtilfeller:
 
 ```python
-# Test 1: Prosa-forkortelser
+# Test 1: Norsk tallformatering (Tusenskille og desimalkomma)
+"1000"                       -> "1 000"
+"25000"                      -> "25 000"
+"1000000"                    -> "1 000 000"
+"1.000.000"                  -> "1 000 000"
+"0.5"                        -> "0,5"
+"1234.56"                    -> "1 234,56"
+"1000.5"                     -> "1 000,5"
+
+# Test 2: Skåneregler for datoer, ordenstall og koder (SKAL IKKE ENDRES)
+"17.05.1814"                 -> "17.05.1814"
+"20.08.2026"                 -> "20.08.2026"
+"2026-08-19"                 -> "2026-08-19"
+"17. mai"                    -> "17. mai"
+"1. plass"                   -> "1. plass"
+"<NUM>"                      -> "<NUM>"
+"192.168.1.1"                -> "192.168.1.1"
+"v1.0.0"                     -> "v1.0.0"
+
+# Test 3: Prosa-forkortelser
 "Det var f.eks. relevant, o.s.v." -> "Det var for eksempel relevant, og så videre"
 
-# Test 2: Måleenheter med tall (Siffer/NUM)
-"5 kilometer"                -> "5 km"
+# Test 4: Måleenheter med tall
+"1000 kilometer"             -> "1 000 km"
 "<NUM> milligram"            -> "<NUM> mg"
 "5 millimol per liter"       -> "5 mmol/l"
 "100 cm3"                    -> "100 cm³"
-"100 cm2"                    -> "100 cm²"
-"100 km3"                    -> "100 km³"
 "10 kubikkkilometer"         -> "10 km³"
-"37 grader celsius"          -> "37 °C"
-
-# Test 3: Sperre mot utskrevne tallord (SKAL IKKE ENDRES)
-"fem kilometer"              -> "fem kilometer"
-"en kilometer"               -> "en kilometer"
 ```
 
 ---

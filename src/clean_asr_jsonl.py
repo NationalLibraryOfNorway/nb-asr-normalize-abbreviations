@@ -40,8 +40,8 @@ NUMBER_PATTERN = (
     r"(?:"
     r"<NUM>"
     r"|"
-    r"[+-]?\d+(?:[.,]\d+)?"
-    r"(?:\s*[–-]\s*[+-]?\d+(?:[.,]\d+)?)?"
+    r"[+-]?(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)(?:[.,]\d+)?"
+    r"(?:\s*[–-]\s*[+-]?(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)(?:[.,]\d+)?)?"
     r")"
 )
 
@@ -279,10 +279,12 @@ class TextNormalizer:
         expand_abbreviations: bool = True,
         normalize_units: bool = True,
         normalize_whitespace: bool = True,
+        normalize_numbers: bool = True,
     ) -> None:
         self.expand_abbreviations = expand_abbreviations
         self.normalize_units = normalize_units
         self.normalize_whitespace = normalize_whitespace
+        self.normalize_numbers = normalize_numbers
         self._abbreviation_rules = tuple(
             compile_rule(pattern, replacement) for pattern, replacement in GENERAL_ABBREVIATIONS
         )
@@ -312,6 +314,65 @@ class TextNormalizer:
         pattern = rf"(?<![\w>])(?P<number>{NUMBER_PATTERN})\s+(?:{unit_pattern})(?![\w/])"
         return compile_rule(pattern, rf"\g<number> {canonical_unit}")
 
+    _COMBINED_NUMBER_PATTERN = re.compile(
+        r"(?P<skip>"
+        r"<NUM>"
+        r"|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b"
+        r"|\b\d{4}-\d{2}-\d{2}\b"
+        r"|(?<![\w<])\d+(?:\.\d+){2,}\b"
+        r")"
+        r"|"
+        r"(?<![\w<.])"
+        r"(?P<sign>[+-])?"
+        r"(?P<integer>"
+        r"\d{1,3}(?:\.\d{3})+"
+        r"|"
+        r"\d{1,3}(?:[ \u00a0]\d{3})+"
+        r"|"
+        r"\d+"
+        r")"
+        r"(?P<decimal>[.,]\d+)?"
+        r"(?![a-zA-Z>])"
+    )
+
+    _PERIOD_THOUSAND_PATTERN = re.compile(r"^[+-]?\d{1,3}(?:\.\d{3})+$")
+
+    @staticmethod
+    def _format_digits(digits: str) -> str:
+        if len(digits) < 4:
+            return digits
+        n = len(digits)
+        first_len = n % 3 or 3
+        chunks = [digits[:first_len]]
+        for i in range(first_len, n, 3):
+            chunks.append(digits[i : i + 3])
+        return " ".join(chunks)
+
+    @classmethod
+    def _replace_number_match(cls, match: re.Match[str]) -> str:
+        skip_val = match.group("skip")
+        if skip_val:
+            if cls._PERIOD_THOUSAND_PATTERN.match(skip_val):
+                digits = skip_val.replace(".", "")
+                sign = ""
+                if digits.startswith(("+", "-")):
+                    sign, digits = digits[0], digits[1:]
+                return sign + cls._format_digits(digits)
+            return skip_val
+
+        sign = match.group("sign") or ""
+        raw_int = match.group("integer")
+        raw_dec = match.group("decimal")
+
+        clean_digits = raw_int.replace(".", "").replace(" ", "").replace("\u00a0", "")
+        formatted_int = cls._format_digits(clean_digits)
+
+        formatted_dec = ("," + raw_dec[1:]) if raw_dec else ""
+        return f"{sign}{formatted_int}{formatted_dec}"
+
+    def _normalize_number_format(self, text: str) -> str:
+        return self._COMBINED_NUMBER_PATTERN.sub(self._replace_number_match, text)
+
     @staticmethod
     def _normalize_unicode(text: str) -> str:
         """Normalize selected Unicode variants without changing content broadly."""
@@ -339,6 +400,9 @@ class TextNormalizer:
             raise TypeError(f"Expected str, received {type(text).__name__}")
 
         result = self._normalize_unicode(text)
+        if self.normalize_numbers:
+            result = self._normalize_number_format(result)
+
         if self.expand_abbreviations:
             for rule in self._abbreviation_rules:
                 result = rule.pattern.sub(rule.replacement, result)
@@ -505,6 +569,7 @@ def process_jsonl(
     expand_abbreviations: bool = True,
     normalize_units: bool = True,
     normalize_whitespace: bool = True,
+    normalize_numbers: bool = True,
     strict_fields: bool = False,
     ensure_ascii: bool = False,
     show_progress: bool = True,
@@ -532,6 +597,7 @@ def process_jsonl(
         expand_abbreviations=expand_abbreviations,
         normalize_units=normalize_units,
         normalize_whitespace=normalize_whitespace,
+        normalize_numbers=normalize_numbers,
     )
 
     total: int | None = None
@@ -624,6 +690,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
         help="Do not normalize horizontal whitespace.",
     )
     parser.add_argument(
+        "--ignore_number_normalisations",
+        "--no_normalize_numbers",
+        action="store_true",
+        help="Do not normalize number formatting (thousand space separator and decimal comma).",
+    )
+    parser.add_argument(
         "--strict_fields",
         action="store_true",
         help="Fail when a requested field is missing or is not a string.",
@@ -657,6 +729,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             expand_abbreviations=not args.no_expand_abbreviations,
             normalize_units=not args.no_normalize_units,
             normalize_whitespace=not args.no_normalize_whitespace,
+            normalize_numbers=not args.ignore_number_normalisations,
             strict_fields=args.strict_fields,
             ensure_ascii=args.ensure_ascii,
             show_progress=not args.no_progress,
