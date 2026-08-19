@@ -1,6 +1,8 @@
-# Normalizer Notes
+# Normalizer Documentation
 
-This directory documents the behavior expected from the JSONL normalizer.
+For standardiserings- og implementasjonsspesifikasjonen på norsk, se [normaliseringsspesifikasjon.md](normaliseringsspesifikasjon.md).
+
+## Quick Overview
 
 ## Abbreviations
 

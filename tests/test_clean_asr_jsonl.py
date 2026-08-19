@@ -25,6 +25,10 @@ def test_expands_common_abbreviations() -> None:
         ("<NUM> kilometer i timen", "<NUM> km/t"),
         ("5 ug/ml", "5 µg/ml"),
         ("37 grader celsius", "37 °C"),
+        ("100 cm3", "100 cm³"),
+        ("100 cm2", "100 cm²"),
+        ("100 km3", "100 km³"),
+        ("10 kubikkkilometer", "10 km³"),
     ],
 )
 def test_normalizes_units_after_digit_or_num_placeholder(source: str, expected: str) -> None:
