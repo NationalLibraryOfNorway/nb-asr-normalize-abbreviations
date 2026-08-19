@@ -306,7 +306,11 @@ class TextNormalizer:
             r"§ \g<number>",
         )
         self._number_symbol_spacing_rule = re.compile(
-            rf"(?P<number>{NUMBER_PATTERN})\s*(?P<symbol>%|‰|°C|°F)"
+            rf"(?P<number>{NUMBER_PATTERN})\s*(?P<symbol>%|‰|°C|°F)",
+            re.IGNORECASE,
+        )
+        self._degree_angle_spacing_rule = re.compile(
+            rf"(?P<number>{NUMBER_PATTERN})\s+°(?![CFcf])"
         )
 
     @staticmethod
@@ -418,6 +422,7 @@ class TextNormalizer:
             for rule in self._unit_rules:
                 result = rule.pattern.sub(rule.replacement, result)
             result = self._number_symbol_spacing_rule.sub(r"\g<number> \g<symbol>", result)
+            result = self._degree_angle_spacing_rule.sub(r"\g<number>°", result)
 
         if self.normalize_whitespace:
             result = self._normalize_spaces(result)

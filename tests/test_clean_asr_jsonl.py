@@ -29,6 +29,9 @@ def test_expands_common_abbreviations() -> None:
         ("100 cm2", "100 cm²"),
         ("100 km3", "100 km³"),
         ("10 kubikkkilometer", "10 km³"),
+        ("60 °", "60°"),
+        ("60 °N", "60°N"),
+        ("45 ° vinkel", "45° vinkel"),
     ],
 )
 def test_normalizes_units_after_digit_or_num_placeholder(source: str, expected: str) -> None:

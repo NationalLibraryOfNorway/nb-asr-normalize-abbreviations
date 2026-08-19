@@ -245,13 +245,14 @@ Alle utskrevne måleenheter som følger etter et tall eller `<NUM>` konverteres 
 ---
 
 ### 3.4 Lovverk, Paragraftegn og Tegnformatering
-Spesielle regler gjelder for lovhenvisninger og formatering av symbolavstand:
+Spesielle regler gjelder for lovhenvisninger, temperaturer og formatering av symbolavstand:
 
 | Regel | Kilde-mønster | Kanonisk resultat | Eksempel |
 | :--- | :--- | :--- | :--- |
 | **Flertall paragraf** | `paragrafene <NUM_1> og <NUM_2>` | `§§ <NUM_1> og <NUM_2>` | `paragrafene 5 og 6` $\rightarrow$ `§§ 5 og 6` |
 | **Entall paragraf** | `paragraf <NUM>` | `§ <NUM>` | `paragraf 12` $\rightarrow$ `§ 12` |
-| **Symbol-avstand** | `<NUM>\s*(%\|‰\|°C\|°F)` | `<NUM> <SYMBOL>` | `50%` $\rightarrow$ `50 %`, `37°C` $\rightarrow$ `37 °C` |
+| **Temperatur & prosent (Mellomrom tvinges)** | `<NUM>\s*(%\|‰\|°C\|°F)` | `<NUM> <SYMBOL>` | `50%` $\rightarrow$ `50 %`, `37°C` $\rightarrow$ `37 °C` |
+| **Vinkel- & GPS-grader (Mellomrom fjernes)** | `<NUM>\s+°(?![CFcf])` | `<NUM>°` | `60 °` $\rightarrow$ `60°`, `60 °N` $\rightarrow$ `60°N`, `45 °` $\rightarrow$ `45°` |
 
 ---
 
@@ -320,8 +321,15 @@ Implementasjonen skal bestå verifikasjonstester tilsvarende følgende testtilfe
 "5 millimol per liter"       -> "5 mmol/l"
 "100 cm3"                    -> "100 cm³"
 "10 kubikkkilometer"         -> "10 km³"
+
+# Test 5: Grader og tegnformatering (Temperatur vs GPS/Vinkler)
+"37°C"                        -> "37 °C"
+"60 °"                        -> "60°"
+"60 °N"                       -> "60°N"
+"45 ° vinkel"                 -> "45° vinkel"
 ```
 
 ---
 **Dokument-eier:** Nasjonalbiblioteket ASR Prosjekt  
 **Lisens:** MIT License
+
