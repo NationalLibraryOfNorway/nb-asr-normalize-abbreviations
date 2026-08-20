@@ -103,11 +103,36 @@ Ved matching av tekst må regler evalueres i en bestemt rekkefølge for å unng�
 2. **Dato-kanonisering:** Konverter ustandardiserte datoformater til `DD.MM.YYYY` (`_normalize_date_format`).
 3. **Norsk tallformatering:** Formatering av tusenskiller og desimalskilletegn (`_normalize_number_format`).
 4. **Prosa-forkortelser:** Ekspander vanlige forkortelser (`GENERAL_ABBREVIATIONS`).
-4. **Paragraf- og spesialregler:** Håndter `paragraf` / `paragrafene`.
-5. **Ustandardiserte enhets-aliaser:** Rett opp ASCII-varianter og ustandardiserte tegn (`UNIT_ALIASES`, f.eks. `kwh` $\rightarrow$ `kWh`, `cm3` $\rightarrow$ `cm³`).
-6. **Utskrevne enhets-uttrykk:** Konverter sammensatte og lange enheter før enkle enheter (`UNIT_EXPRESSIONS`, f.eks. `millimol per liter` før `millimol`, `kubikkkilometer` før `kubikkmeter`).
-7. **Mellomrom ved symboler:** Sikre korrekt mellomrom før `%`, `‰`, `°C` og `°F`.
-8. **Whitespace-normalisering:** Reduser multiple vanlige mellomrom/tabulatorer til enkelt mellomrom per linje, samtidig som linjeskift bevares.
+5. **Paragraf- og spesialregler:** Håndter `paragraf` / `paragrafene`.
+6. **Ustandardiserte enhets-aliaser:** Rett opp ASCII-varianter og ustandardiserte tegn (`UNIT_ALIASES`, f.eks. `kwh` $\rightarrow$ `kWh`, `cm3` $\rightarrow$ `cm³`).
+7. **Utskrevne enhets-uttrykk:** Konverter sammensatte og lange enheter før enkle enheter (`UNIT_EXPRESSIONS`, f.eks. `millimol per liter` før `millimol`, `kubikkkilometer` før `kubikkmeter`).
+8. **Mellomrom ved symboler:** Sikre korrekt mellomrom før `%`, `‰`, `°C` og `°F`.
+9. **Whitespace-normalisering:** Reduser multiple vanlige mellomrom/tabulatorer til enkelt mellomrom per linje, samtidig som linjeskift bevares.
+
+---
+
+### 2.5 Utfordringer og Teoretiske Begrensninger ved bruk av Regulære Uttrykk (Regex vs. NLP)
+
+Å benytte regulære uttrykk (reg.exp.) for tekstnormalisering i ASR-datasett gir ekstremt høy prosesseringshastighet, null avhengigheter og 100 % deterministisk oppførsel. Likevel innebærer bruk av ren regelbasert mønstermatching visse iboende utfordringer og teoretiske begrensninger som har formet arkitekturen i denne normalisereren:
+
+1. **Mangel på dyp syntaktisk og semantisk kontekstforståelse:**
+   * Regulære uttrykk opererer på tegnnivå og har ikke tilgang til morfosyntaktisk analyse (Part-of-Speech tagging) eller leksikalske parsningstrær.
+   * En streng som `min.` kan rent teoretisk representere adjektivet/pronomenet *min* ved et setningspunktum, forkortelsen for måleenheten *minutter*, eller forkortelsen for *minimum*. Regex kan ikke analysere setningens dype grammatiske tre.
+
+2. **Det grunnleggende prinsippet: Presisjon fremfor Gjenfinning (Precision vs. Recall):**
+   * I dette prosjektet er det fastslått som et ubetinget krav at **null falske positiver ("Do No Harm")** har høyere prioritet enn å fange opp 100 % av alle mulige ustandardiserte skrivemåter.
+   * En uoppdaget forkortelse i kildematerialet (f.eks. at en ekstremt sjelden lokal forkortelse står uendret) har minimal skadevirkning, mens en feilaktig erstatning (som f.eks. å endre `PGA Tour` til `På grunn av Tour` eller `en tom boks` til `en til og med boks`) ødelegger den semantiske meningen i datasettet.
+
+3. **Kollisjonshåndtering av homografer og versalkoder:**
+   * Mange korte bokstavkombinasjoner uten punktum kolliderer med enten vanlige norske ord (`tom`, `bla`, `min`, `el`, `tab`), SI-måleenheter (`mm`), eller internasjonale versalforkortelser og egennavn (`PGA` for PGA Tour, `OL` for Olympiske leker, `PT` for Personal Trainer, `CA` for California).
+   * Løsningen i regulære uttrykk krever eksplisitte versalsperrer (ALL-CAPS protection) og strenge krav til enten punktum eller tilhørende numerisk kontekst (`min. 10 kg`).
+
+4. **Hvorfor generelle kontekstforbud (f.eks. "neste bokstav må ikke være stor") feiler:**
+   * Det kan ved første øyekast virke fristende å innføre generelle heuristikker som at *"en forkortelse må ikke etterfølges av stor bokstav"*.
+   * Dette vil imidlertid krasje umiddelbart i to svært vanlige tilfeller:
+     1. *Forkortelser foran egennavn:* `f.eks. Norge`, `dvs. Equinor`, `bl.a. Ola`.
+     2. *Forkortelser i setningsavslutninger:* `...osv. Neste setning...`
+   * Regulære uttrykk må derfor bygges opp med presise lookaheads/lookbehinds fremfor globale antagelser.
 
 ---
 
