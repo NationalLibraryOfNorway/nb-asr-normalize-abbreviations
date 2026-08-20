@@ -124,40 +124,39 @@ Følgende tabell inneholder samtlige 43 godkjente norsk prosa-forkortelser. Matc
 | 4 | `o\.?\s*s\.?\s*b\.?` | `og så bortetter` | `o.s.b.` $\rightarrow$ `og så bortetter` |
 | 5 | `f\.?\s*eks\.?` | `for eksempel` | `f.eks.` $\rightarrow$ `for eksempel` |
 | 6 | `bl\.?\s*a\.?` | `blant annet` | `bl.a.` $\rightarrow$ `blant annet` |
-| 7 | `m\.?\s*a\.?` | `med annet` | `m.a.` $\rightarrow$ `med annet` |
-| 8 | `m\.?\s*m\.?` | `med mer` | `m.m.` $\rightarrow$ `med mer` |
-| 9 | `o\.?\s*l\.?` | `og lignende` | `o.l.` $\rightarrow$ `og lignende` |
-| 10 | `e\.?\s*l\.?` | `eller lignende` | `e.l.` $\rightarrow$ `eller lignende` |
-| 11 | `d\.?\s*v\.?\s*s\.?` | `det vil si` | `dvs.` $\rightarrow$ `det vil si` |
-| 12 | `m\.?\s*a\.?\s*o\.?` | `med andre ord` | `m.a.o.` $\rightarrow$ `med andre ord` |
-| 13 | `p\.?\s*g\.?\s*a\.?` | `på grunn av` | `p.g.a.` $\rightarrow$ `på grunn av` |
-| 14 | `i\.?\s*h\.?\s*t\.?` | `i henhold til` | `i.h.t.` $\rightarrow$ `i henhold til` |
-| 15 | `i\.?\s*f\.?\s*m\.?` | `i forbindelse med` | `ifm.` $\rightarrow$ `i forbindelse med` |
-| 16 | `i\.?\s*f\.?\s*t\.?` | `i forhold til` | `ift.` $\rightarrow$ `i forhold til` |
-| 17 | `v\.?\s*h\.?\s*a\.?` | `ved hjelp av` | `vha.` $\rightarrow$ `ved hjelp av` |
-| 18 | `m\.?\s*h\.?\s*t\.?` | `med hensyn til` | `mht.` $\rightarrow$ `med hensyn til` |
-| 19 | `m\.?\s*t\.?\s*p\.?` | `med tanke på` | `mtp.` $\rightarrow$ `med tanke på` |
-| 20 | `p\.?\s*t\.?` | `for tiden` | `p.t.` $\rightarrow$ `for tiden` |
-| 21 | `f\.?\s*t\.?` | `for tiden` | `f.t.` $\rightarrow$ `for tiden` |
-| 22 | `d\.?\s*d\.?` | `dags dato` | `d.d.` $\rightarrow$ `dags dato` |
-| 23 | `s\.?\s*d\.?` | `se denne` | `s.d.` $\rightarrow$ `se denne` |
-| 24 | `h\.?\s*h\.?\s*v\.?` | `henholdsvis` | `hhv.` $\rightarrow$ `henholdsvis` |
-| 25 | `vedr\.?` | `vedrørende` | `vedr.` $\rightarrow$ `vedrørende` |
-| 26 | `ang\.?` | `angående` | `ang.` $\rightarrow$ `angående` |
-| 27 | `inkl\.?` | `inkludert` | `inkl.` $\rightarrow$ `inkludert` |
-| 28 | `ekskl\.?` | `ekskludert` | `ekskl.` $\rightarrow$ `ekskludert` |
-| 29 | `maks\.?` | `maksimalt` | `maks.` $\rightarrow$ `maksimalt` |
-| 30 | `min\.?` | `minimum` | `min.` $\rightarrow$ `minimum` |
-| 31 | `ca\.?` / `cirka\.?` | `cirka` | `ca.` $\rightarrow$ `cirka` |
-| 32 | `evt\.?` / `ev\.?` | `eventuelt` | `evt.` $\rightarrow$ `eventuelt` |
-| 33 | `jf\.?` / `jfr\.?` | `jamfør` | `jfr.` $\rightarrow$ `jamfør` |
-| 34 | `fig\.?` | `figur` | `fig.` $\rightarrow$ `figur` |
-| 35 | `tab\.?` | `tabell` | `tab.` $\rightarrow$ `tabell` |
-| 36 | `kap\.?` | `kapittel` | `kap.` $\rightarrow$ `kapittel` |
-| 37 | `pkt\.?` | `punkt` | `pkt.` $\rightarrow$ `punkt` |
-| 38 | `spm\.?` | `spørsmål` | `spm.` $\rightarrow$ `spørsmål` |
-| 39 | `mill\.?` | `millioner` | `mill.` $\rightarrow$ `millioner` |
-| 40 | `mrd\.?` | `milliarder` | `mrd.` $\rightarrow$ `milliarder` |
+| 7 | `m\.?\s*m\.?` | `med mer` | `m.m.` $\rightarrow$ `med mer` |
+| 8 | `o\.?\s*l\.?` | `og lignende` | `o.l.` $\rightarrow$ `og lignende` |
+| 9 | `e\.?\s*l\.?` | `eller lignende` | `e.l.` $\rightarrow$ `eller lignende` |
+| 10 | `d\.?\s*v\.?\s*s\.?` | `det vil si` | `dvs.` $\rightarrow$ `det vil si` |
+| 11 | `m\.?\s*a\.?\s*o\.?` | `med andre ord` | `m.a.o.` $\rightarrow$ `med andre ord` |
+| 12 | `p\.?\s*g\.?\s*a\.?` | `på grunn av` | `p.g.a.` $\rightarrow$ `på grunn av` |
+| 13 | `i\.?\s*h\.?\s*t\.?` | `i henhold til` | `i.h.t.` $\rightarrow$ `i henhold til` |
+| 14 | `i\.?\s*f\.?\s*m\.?` | `i forbindelse med` | `ifm.` $\rightarrow$ `i forbindelse med` |
+| 15 | `i\.?\s*f\.?\s*t\.?` | `i forhold til` | `ift.` $\rightarrow$ `i forhold til` |
+| 16 | `v\.?\s*h\.?\s*a\.?` | `ved hjelp av` | `vha.` $\rightarrow$ `ved hjelp av` |
+| 17 | `m\.?\s*h\.?\s*t\.?` | `med hensyn til` | `mht.` $\rightarrow$ `med hensyn til` |
+| 18 | `m\.?\s*t\.?\s*p\.?` | `med tanke på` | `mtp.` $\rightarrow$ `med tanke på` |
+| 19 | `p\.?\s*t\.?` | `for tiden` | `p.t.` $\rightarrow$ `for tiden` |
+| 20 | `f\.?\s*t\.?` | `for tiden` | `f.t.` $\rightarrow$ `for tiden` |
+| 21 | `d\.?\s*d\.?` | `dags dato` | `d.d.` $\rightarrow$ `dags dato` |
+| 22 | `s\.?\s*d\.?` | `se denne` | `s.d.` $\rightarrow$ `se denne` |
+| 23 | `h\.?\s*h\.?\s*v\.?` | `henholdsvis` | `hhv.` $\rightarrow$ `henholdsvis` |
+| 24 | `vedr\.?` | `vedrørende` | `vedr.` $\rightarrow$ `vedrørende` |
+| 25 | `ang\.?` | `angående` | `ang.` $\rightarrow$ `angående` |
+| 26 | `inkl\.?` | `inkludert` | `inkl.` $\rightarrow$ `inkludert` |
+| 27 | `ekskl\.?` | `ekskludert` | `ekskl.` $\rightarrow$ `ekskludert` |
+| 28 | `maks\.?` | `maksimalt` | `maks.` $\rightarrow$ `maksimalt` |
+| 29 | `min\.?` | `minimum` | `min.` $\rightarrow$ `minimum` |
+| 30 | `ca\.?` / `cirka\.?` | `cirka` | `ca.` $\rightarrow$ `cirka` |
+| 31 | `evt\.?` / `ev\.?` | `eventuelt` | `evt.` $\rightarrow$ `eventuelt` |
+| 32 | `jf\.?` / `jfr\.?` | `jamfør` | `jfr.` $\rightarrow$ `jamfør` |
+| 33 | `fig\.?` | `figur` | `fig.` $\rightarrow$ `figur` |
+| 34 | `tab\.?` | `tabell` | `tab.` $\rightarrow$ `tabell` |
+| 35 | `kap\.?` | `kapittel` | `kap.` $\rightarrow$ `kapittel` |
+| 36 | `pkt\.?` | `punkt` | `pkt.` $\rightarrow$ `punkt` |
+| 37 | `spm\.?` | `spørsmål` | `spm.` $\rightarrow$ `spørsmål` |
+| 38 | `mill\.?` | `millioner` | `mill.` $\rightarrow$ `millioner` |
+| 39 | `mrd\.?` | `milliarder` | `mrd.` $\rightarrow$ `milliarder` |
 
 ---
 

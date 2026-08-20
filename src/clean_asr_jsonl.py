@@ -72,7 +72,6 @@ GENERAL_ABBREVIATIONS: Sequence[tuple[str, str, tuple[str, ...]]] = (
     (r"(?<![\w@])(?:o\.?\s*s\.?\s*b\.?|osb\.?)(?![\w@])", "og så bortetter", ()),
     (r"(?<![\w@])(?:f\.?\s*eks\.?|feks\.?)(?![\w@])", "for eksempel", ()),
     (r"(?<![\w@])(?:bl\.\s*a\.?|bl\.a\.?)(?![\w@])", "blant annet", ()),
-    (r"(?<![\w@])(?:m\.\s*a\.?|m\.a\.?)(?![\w@])", "med annet", ()),
     (r"(?<![\w@])(?:m\.\s*m\.?|m\.m\.?)(?![\w@])", "med mer", ()),
     (r"(?<![\w@])(?:o\.\s*l\.?|o\.l\.?|ol\.)(?![\w@])", "og lignende", ("OL",)),
     (r"(?<![\w@])(?:e\.\s*l\.?|e\.l\.?)(?![\w@])", "eller lignende", ()),
