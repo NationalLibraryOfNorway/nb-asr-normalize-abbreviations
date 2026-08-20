@@ -65,50 +65,47 @@ def literal_abbreviation_pattern(abbreviation: str) -> str:
     return rf"(?<![\w@]){re.escape(abbreviation)}(?![\w@])"
 
 
-GENERAL_ABBREVIATIONS: Sequence[tuple[str, str]] = (
-    (r"(?<![\w@])f\.?\s*o\.?\s*m\.?(?![\w@])", "fra og med"),
-    (r"(?<![\w@])t\.?\s*o\.?\s*m\.?(?![\w@])", "til og med"),
-    (r"(?<![\w@])o\.?\s*s\.?\s*v\.?(?![\w@])", "og så videre"),
-    (r"(?<![\w@])o\.?\s*s\.?\s*b\.?(?![\w@])", "og så bortetter"),
-    (r"(?<![\w@])f\.?\s*eks\.?(?![\w@])", "for eksempel"),
-    (r"(?<![\w@])bl\.?\s*a\.?(?![\w@])", "blant annet"),
-    (r"(?<![\w@])m\.?\s*a\.?(?![\w@])", "med annet"),
-    (r"(?<![\w@])m\.?\s*m\.?(?![\w@])", "med mer"),
-    (r"(?<![\w@])o\.?\s*l\.?(?![\w@])", "og lignende"),
-    (r"(?<![\w@])e\.?\s*l\.?(?![\w@])", "eller lignende"),
-    (r"(?<![\w@])d\.?\s*v\.?\s*s\.?(?![\w@])", "det vil si"),
-    (r"(?<![\w@])m\.?\s*a\.?\s*o\.?(?![\w@])", "med andre ord"),
-    (r"(?<![\w@])p\.?\s*g\.?\s*a\.?(?![\w@])", "på grunn av"),
-    (r"(?<![\w@])i\.?\s*h\.?\s*t\.?(?![\w@])", "i henhold til"),
-    (r"(?<![\w@])i\.?\s*f\.?\s*m\.?(?![\w@])", "i forbindelse med"),
-    (r"(?<![\w@])i\.?\s*f\.?\s*t\.?(?![\w@])", "i forhold til"),
-    (r"(?<![\w@])v\.?\s*h\.?\s*a\.?(?![\w@])", "ved hjelp av"),
-    (r"(?<![\w@])m\.?\s*h\.?\s*t\.?(?![\w@])", "med hensyn til"),
-    (r"(?<![\w@])m\.?\s*t\.?\s*p\.?(?![\w@])", "med tanke på"),
-    (r"(?<![\w@])p\.?\s*t\.?(?![\w@])", "for tiden"),
-    (r"(?<![\w@])f\.?\s*t\.?(?![\w@])", "for tiden"),
-    (r"(?<![\w@])d\.?\s*d\.?(?![\w@])", "dags dato"),
-    (r"(?<![\w@])s\.?\s*d\.?(?![\w@])", "se denne"),
-    (r"(?<![\w@])h\.?\s*h\.?\s*v\.?(?![\w@])", "henholdsvis"),
-    (r"(?<![\w@])vedr\.?(?![\w@])", "vedrørende"),
-    (r"(?<![\w@])ang\.?(?![\w@])", "angående"),
-    (r"(?<![\w@])inkl\.?(?![\w@])", "inkludert"),
-    (r"(?<![\w@])ekskl\.?(?![\w@])", "ekskludert"),
-    (r"(?<![\w@])maks\.?(?![\w@])", "maksimalt"),
-    (r"(?<![\w@])min\.?(?![\w@])", "minimum"),
-    (r"(?<![\w@])ca\.?(?![\w@])", "cirka"),
-    (r"(?<![\w@])cirka\.?(?![\w@])", "cirka"),
-    (r"(?<![\w@])evt\.?(?![\w@])", "eventuelt"),
-    (r"(?<![\w@])ev\.?(?![\w@])", "eventuelt"),
-    (r"(?<![\w@])jf\.?(?![\w@])", "jamfør"),
-    (r"(?<![\w@])jfr\.?(?![\w@])", "jamfør"),
-    (r"(?<![\w@])fig\.?(?![\w@])", "figur"),
-    (r"(?<![\w@])tab\.?(?![\w@])", "tabell"),
-    (r"(?<![\w@])kap\.?(?![\w@])", "kapittel"),
-    (r"(?<![\w@])pkt\.?(?![\w@])", "punkt"),
-    (r"(?<![\w@])spm\.?(?![\w@])", "spørsmål"),
-    (r"(?<![\w@])mill\.?(?![\w@])", "millioner"),
-    (r"(?<![\w@])mrd\.?(?![\w@])", "milliarder"),
+GENERAL_ABBREVIATIONS: Sequence[tuple[str, str, tuple[str, ...]]] = (
+    (r"(?<![\w@])(?:f\.?\s*o\.?\s*m\.?|fom\.?)(?![\w@])", "fra og med", ()),
+    (r"(?<![\w@])(?:t\.\s*o\.\s*m\.?|t\.o\.m\.?|t\.o\.m)(?![\w@])", "til og med", ()),
+    (r"(?<![\w@])(?:o\.?\s*s\.?\s*v\.?|osv\.?)(?![\w@])", "og så videre", ()),
+    (r"(?<![\w@])(?:o\.?\s*s\.?\s*b\.?|osb\.?)(?![\w@])", "og så bortetter", ()),
+    (r"(?<![\w@])(?:f\.?\s*eks\.?|feks\.?)(?![\w@])", "for eksempel", ()),
+    (r"(?<![\w@])(?:bl\.\s*a\.?|bl\.a\.?)(?![\w@])", "blant annet", ()),
+    (r"(?<![\w@])(?:m\.\s*a\.?|m\.a\.?)(?![\w@])", "med annet", ()),
+    (r"(?<![\w@])(?:m\.\s*m\.?|m\.m\.?)(?![\w@])", "med mer", ()),
+    (r"(?<![\w@])(?:o\.\s*l\.?|o\.l\.?|ol\.)(?![\w@])", "og lignende", ("OL",)),
+    (r"(?<![\w@])(?:e\.\s*l\.?|e\.l\.?)(?![\w@])", "eller lignende", ()),
+    (r"(?<![\w@])(?:d\.?\s*v\.?\s*s\.?|dvs\.?)(?![\w@])", "det vil si", ("DVS",)),
+    (r"(?<![\w@])(?:m\.?\s*a\.?\s*o\.?|mao\.?)(?![\w@])", "med andre ord", ()),
+    (r"(?<![\w@])(?:p\.?\s*g\.?\s*a\.?|pga\.?)(?![\w@])", "på grunn av", ("PGA",)),
+    (r"(?<![\w@])(?:i\.?\s*h\.?\s*t\.?|iht\.?)(?![\w@])", "i henhold til", ()),
+    (r"(?<![\w@])(?:i\.?\s*f\.?\s*m\.?|ifm\.?)(?![\w@])", "i forbindelse med", ()),
+    (r"(?<![\w@])(?:i\.?\s*f\.?\s*t\.?|ift\.?)(?![\w@])", "i forhold til", ()),
+    (r"(?<![\w@])(?:v\.?\s*h\.?\s*a\.?|vha\.?)(?![\w@])", "ved hjelp av", ()),
+    (r"(?<![\w@])(?:m\.?\s*h\.?\s*t\.?|mht\.?)(?![\w@])", "med hensyn til", ()),
+    (r"(?<![\w@])(?:m\.?\s*t\.?\s*p\.?|mtp\.?)(?![\w@])", "med tanke på", ()),
+    (r"(?<![\w@])(?:p\.\s*t\.?|p\.t\.?|pt\.)(?![\w@])", "for tiden", ("PT",)),
+    (r"(?<![\w@])(?:f\.\s*t\.?|f\.t\.?|ft\.)(?![\w@])", "for tiden", ("FT",)),
+    (r"(?<![\w@])(?:d\.\s*d\.?|d\.d\.?|dd\.)(?![\w@])", "dags dato", ()),
+    (r"(?<![\w@])(?:s\.\s*d\.?|s\.d\.?|sd\.)(?![\w@])", "se denne", ()),
+    (r"(?<![\w@])(?:h\.?\s*h\.?\s*v\.?|hhv\.?)(?![\w@])", "henholdsvis", ()),
+    (r"(?<![\w@])vedr\.?(?![\w@])", "vedrørende", ()),
+    (r"(?<![\w@])ang\.?(?![\w@])", "angående", ()),
+    (r"(?<![\w@])inkl\.?(?![\w@])", "inkludert", ()),
+    (r"(?<![\w@])ekskl\.?(?![\w@])", "ekskludert", ()),
+    (r"(?<![\w@])maks\.?(?![\w@])", "maksimalt", ()),
+    (r"(?<![\w@])min\.(?=\s+[\w\d]|[/–-])", "minimum", ()),
+    (r"(?<![\w@])(?:ca\.?)(?![\w@])", "cirka", ("CA",)),
+    (r"(?<![\w@])(?:evt\.?|ev\.?)(?![\w@])", "eventuelt", ()),
+    (r"(?<![\w@])(?:jf\.?|jfr\.?)(?![\w@])", "jamfør", ()),
+    (r"(?<![\w@])fig\.?(?![\w@])", "figur", ()),
+    (r"(?<![\w@])tab\.(?![\w@])", "tabell", ()),
+    (r"(?<![\w@])kap\.?(?![\w@])", "kapittel", ()),
+    (r"(?<![\w@])pkt\.?(?![\w@])", "punkt", ()),
+    (r"(?<![\w@])spm\.?(?![\w@])", "spørsmål", ()),
+    (r"(?<![\w@])mill\.?(?![\w@])", "millioner", ()),
+    (r"(?<![\w@])mrd\.?(?![\w@])", "milliarder", ()),
 )
 
 UNIT_EXPRESSIONS: Sequence[tuple[str, str]] = (
@@ -280,13 +277,19 @@ class TextNormalizer:
         normalize_units: bool = True,
         normalize_whitespace: bool = True,
         normalize_numbers: bool = True,
+        normalize_dates: bool = True,
     ) -> None:
         self.expand_abbreviations = expand_abbreviations
         self.normalize_units = normalize_units
         self.normalize_whitespace = normalize_whitespace
         self.normalize_numbers = normalize_numbers
+        self.normalize_dates = normalize_dates
         self._abbreviation_rules = tuple(
-            compile_rule(pattern, replacement) for pattern, replacement in GENERAL_ABBREVIATIONS
+            (
+                re.compile(pattern, re.IGNORECASE),
+                self._create_abbrev_sub(replacement, preserve_caps),
+            )
+            for pattern, replacement, preserve_caps in GENERAL_ABBREVIATIONS
         )
         self._unit_rules = tuple(
             self._compile_number_unit_rule(pattern, replacement)
@@ -317,6 +320,47 @@ class TextNormalizer:
     def _compile_number_unit_rule(unit_pattern: str, canonical_unit: str) -> ReplacementRule:
         pattern = rf"(?<![\w>])(?P<number>{NUMBER_PATTERN})\s+(?:{unit_pattern})(?![\w/])"
         return compile_rule(pattern, rf"\g<number> {canonical_unit}")
+
+    @staticmethod
+    def _create_abbrev_sub(
+        replacement: str, preserve_caps: tuple[str, ...]
+    ) -> Callable[[re.Match[str]], str]:
+        def sub_func(match: re.Match[str]) -> str:
+            val = match.group(0)
+            if val in preserve_caps:
+                return val
+            res = replacement
+            if val[0].isupper():
+                return res[0].upper() + res[1:]
+            return res
+
+        return sub_func
+
+    _DATE_PATTERNS = (
+        # YYYY-MM-DD
+        re.compile(r"(?<![\w-])(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})(?![\w-])"),
+        # DD-MM-YYYY
+        re.compile(r"(?<![\w-])(?P<day>\d{1,2})-(?P<month>\d{1,2})-(?P<year>\d{4})(?![\w-])"),
+        # DD/MM/YYYY
+        re.compile(r"(?<![\w/])(?P<day>\d{1,2})/(?P<month>\d{1,2})/(?P<year>\d{4})(?![\w/])"),
+        # DD.MM.YYYY or D.M.YYYY
+        re.compile(r"(?<![\w.])(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{4})(?![\w.])"),
+    )
+
+    @classmethod
+    def _replace_date_match(cls, match: re.Match[str]) -> str:
+        day = int(match.group("day"))
+        month = int(match.group("month"))
+        year = match.group("year")
+        if 1 <= day <= 31 and 1 <= month <= 12:
+            return f"{day:02d}.{month:02d}.{year}"
+        return match.group(0)
+
+    def _normalize_date_format(self, text: str) -> str:
+        result = text
+        for pattern in self._DATE_PATTERNS:
+            result = pattern.sub(self._replace_date_match, result)
+        return result
 
     _COMBINED_NUMBER_PATTERN = re.compile(
         r"(?P<skip>"
@@ -404,12 +448,14 @@ class TextNormalizer:
             raise TypeError(f"Expected str, received {type(text).__name__}")
 
         result = self._normalize_unicode(text)
+        if self.normalize_dates:
+            result = self._normalize_date_format(result)
         if self.normalize_numbers:
             result = self._normalize_number_format(result)
 
         if self.expand_abbreviations:
-            for rule in self._abbreviation_rules:
-                result = rule.pattern.sub(rule.replacement, result)
+            for pattern, sub_func in self._abbreviation_rules:
+                result = pattern.sub(sub_func, result)
 
         if self.normalize_units:
             result = self._paragraph_plural_rule.pattern.sub(
@@ -575,6 +621,7 @@ def process_jsonl(
     normalize_units: bool = True,
     normalize_whitespace: bool = True,
     normalize_numbers: bool = True,
+    normalize_dates: bool = True,
     strict_fields: bool = False,
     ensure_ascii: bool = False,
     show_progress: bool = True,
@@ -603,6 +650,7 @@ def process_jsonl(
         normalize_units=normalize_units,
         normalize_whitespace=normalize_whitespace,
         normalize_numbers=normalize_numbers,
+        normalize_dates=normalize_dates,
     )
 
     total: int | None = None
@@ -735,6 +783,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             normalize_units=not args.no_normalize_units,
             normalize_whitespace=not args.no_normalize_whitespace,
             normalize_numbers=not args.ignore_number_normalisations,
+            normalize_dates=not args.ignore_number_normalisations,
             strict_fields=args.strict_fields,
             ensure_ascii=args.ensure_ascii,
             show_progress=not args.no_progress,

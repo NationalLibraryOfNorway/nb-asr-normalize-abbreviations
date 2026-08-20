@@ -42,13 +42,23 @@ Måleenheter og enhetsforkortelser skal **kun** konverteres dersom de umiddelbar
 
 ---
 
-### 2.2 Ord- og tegn-grenser (Boundary Matching)
-For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresser eller variabelfelt, må alle regelerstatninger bruke strenge grensebetingelser.
+### 2.2 Ord-, Tegn- og Kapitaliserings-grenser (Boundary Matching og Kollisjonssikring)
+For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresser, egennavn eller ubeslektede versalforkortelser, benyttes følgende regler:
 
-* **Prosa-forkortelser:** Skal benytte negativ lookbehind og lookahead for bokstaver og `@`-tegnet:
-  $$\texttt{(?<![\w@])<mønster>(?![\w@])}$$
-* **Måleenheter:** Skal benytte negativ lookbehind for ord/vinkelparentes og negativ lookahead for ord/skråstrek:
-  $$\texttt{(?<![\w>])<NUMBER\_PATTERN>\s+<enhetsmønster>(?![\w/])}$$
+* **Variant-matching:** Mønstre fanger opp alle vanlige skrivemåter uavhengig av om de har punktum eller ustandardiserte sammentrekninger (f.eks. `osv.`, `osv`, `o.s.v.`, `feks`, `f.eks.`, `pga`, `p.g.a.`).
+* **Versalsikring (ALL-CAPS protection):** Forkortelser som kolliderer med internasjonale forkortelser eller organisasjonsnavn bevares uendret når de står i versaler uten punktum:
+  * `PGA` (f.eks. `PGA Tour` / `PGA-touren`) bevares som `PGA`, mens `pga` / `Pga` / `p.g.a.` ekspanderes til `på grunn av` / `På grunn av`.
+  * `OL` (f.eks. `OL på Lillehammer`) bevares som `OL`, mens `o.l.` / `o.l` / `ol.` ekspanderes til `og lignende`.
+  * `PT` (`Personal Trainer`), `CA` (`California`), `FT` (`Financial Times`) og `DVS` bevares uendret når de står i versaler uten punktum.
+* **Ord- og enhets-skåning:** Norske ord eller SI-enheter som faller sammen med usammensatte bokstavmønstre uten punktum skånes fra ekspansjon:
+  * Ordene `tom` (f.eks. "en tom flaske" / "Tom") skånes (krever punktum som `t.o.m.` / `t.o.m` for `til og med`).
+  * Verbet `bla` ("å bla i boka") skånes (krever punktum som `bl.a.` / `bl.a`).
+  * Måleenheten `mm` ("10 mm") skånes (krever punktum som `m.m.` for `med mer`).
+  * Eiendomspronomenet `min` ("bilen min.") skånes (krever punktum etterfulgt av mellomrom/tall/ord som `min. 10` for `minimum`).
+  * Ordene `el` ("el-bil") og `tab` ("trykk tab") skånes.
+* **Regeluttrykk:**
+  * **Prosa-forkortelser:** $\texttt{(?<![\w@])<mønster>(?![\w@])}$
+  * **Måleenheter:** $\texttt{(?<![\w>])<NUMBER\_PATTERN>\s+<enhetsmønster>(?![\w/])}$
 
 ---
 
@@ -71,12 +81,18 @@ På norsk brukes enkelt mellomrom som tusenskille og komma som desimalskilletegn
    * `0.5` $\rightarrow$ `0,5`
    * `1234.56` $\rightarrow$ `1 234,56`
    * `1000,5` $\rightarrow$ `1 000,5`
-4. **Unntak og skåneregler (Edge cases):**
-   * **Datoer:** Fullstendige datoer som `17.05.1814`, `20.08.2026`, `2026-08-19` og `17/05/1814` bevares uendret.
-   * **Ordenstall:** Punktum etter tall etterfulgt av mellomrom og bokstav/ord (f.eks. `17. mai`, `1. plass`, `paragraf 1.`) representerer ordenstall og skal bevares.
+4. **Datoer (Kanonisering til DD.MM.YYYY):**
+   * Ulike datoskrivemåter som ISO-format (`YYYY-MM-DD`), skråstrek (`DD/MM/YYYY`), bindestrek (`DD-MM-YYYY`) og ufullstendig nullpolstrede datoer (`D.M.YYYY` / `D/M/YYYY`) normeres til det offisielle norske datoformatet `DD.MM.YYYY`.
+   * `17/05/1814` $\rightarrow$ `17.05.1814`
+   * `2026-08-19` $\rightarrow$ `19.08.2026`
+   * `19-08-2026` $\rightarrow$ `19.08.2026`
+   * `10.5.1814` $\rightarrow$ `10.05.1814`
+   * `1/5/1814` $\rightarrow$ `01.05.1814`
+5. **Andre skåneregler (Edge cases):**
+   * **Ordenstall:** Punktum etter tall etterfulgt av mellomrom og bokstav/ord (f.eks. `17. mai`, `1. plass`, `20. århundre`) representerer ordenstall og skal bevares uendret.
    * **Plassholdere:** Spesialtegn som `<NUM>` berøres ikke.
    * **Versjonsnumre og IP-adresser:** Tekst som `v1.0.0` og `192.168.1.1` skal ikke endres.
-5. **Kjøringsvalg:** Tallnormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
+6. **Kjøringsvalg:** Tall- og datonormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
 
 ---
 
@@ -84,8 +100,9 @@ På norsk brukes enkelt mellomrom som tusenskille og komma som desimalskilletegn
 Ved matching av tekst må regler evalueres i en bestemt rekkefølge for å unngå at kortere mønstre "stjeler" prefikser fra lengre og mer spesifikke mønstre.
 
 1. **Unicode-normalisering:** Erstatt ustandardiserte mellomrom (`\u00a0`, `\u202f` $\rightarrow$ ` `) og gresk mu (`μ` $\rightarrow$ `µ`).
-2. **Norsk tallformatering:** Formatering av tusenskiller og desimalskilletegn (`_normalize_number_format`).
-3. **Prosa-forkortelser:** Ekspander vanlige forkortelser (`GENERAL_ABBREVIATIONS`).
+2. **Dato-kanonisering:** Konverter ustandardiserte datoformater til `DD.MM.YYYY` (`_normalize_date_format`).
+3. **Norsk tallformatering:** Formatering av tusenskiller og desimalskilletegn (`_normalize_number_format`).
+4. **Prosa-forkortelser:** Ekspander vanlige forkortelser (`GENERAL_ABBREVIATIONS`).
 4. **Paragraf- og spesialregler:** Håndter `paragraf` / `paragrafene`.
 5. **Ustandardiserte enhets-aliaser:** Rett opp ASCII-varianter og ustandardiserte tegn (`UNIT_ALIASES`, f.eks. `kwh` $\rightarrow$ `kWh`, `cm3` $\rightarrow$ `cm³`).
 6. **Utskrevne enhets-uttrykk:** Konverter sammensatte og lange enheter før enkle enheter (`UNIT_EXPRESSIONS`, f.eks. `millimol per liter` før `millimol`, `kubikkkilometer` før `kubikkmeter`).

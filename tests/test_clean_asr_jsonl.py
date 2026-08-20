@@ -89,8 +89,11 @@ def test_strict_fields_rejects_non_string() -> None:
         ("1000.5", "1 000,5"),
         ("-1000.5", "-1 000,5"),
         ("17.05.1814", "17.05.1814"),
-        ("20.08.2026", "20.08.2026"),
-        ("2026-08-19", "2026-08-19"),
+        ("17/05/1814", "17.05.1814"),
+        ("2026-08-19", "19.08.2026"),
+        ("19-08-2026", "19.08.2026"),
+        ("10.5.1814", "10.05.1814"),
+        ("1/5/1814", "01.05.1814"),
         ("17. mai", "17. mai"),
         ("Det var 1000.", "Det var 1 000."),
         ("<NUM>", "<NUM>"),
@@ -107,4 +110,28 @@ def test_ignore_number_normalisations() -> None:
     assert normalizer.normalize("Det var 1000 og 1234.56 kroner.") == (
         "Det var 1000 og 1234.56 kroner."
     )
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("Det var osv i teksten", "Det var og så videre i teksten"),
+        ("Det var o.s.v. i teksten", "Det var og så videre i teksten"),
+        ("Det var feks fint", "Det var for eksempel fint"),
+        ("Pga regn ble det avlyst.", "På grunn av regn ble det avlyst."),
+        ("Han vant PGA-touren i helgen.", "Han vant PGA-touren i helgen."),
+        ("Spilte på PGA Tour.", "Spilte på PGA Tour."),
+        ("Det var et OL på Lillehammer.", "Det var et OL på Lillehammer."),
+        ("En tom flaske.", "En tom flaske."),
+        ("Han valgte å bla i boka.", "Han valgte å bla i boka."),
+        ("Bilen var 10 mm lang.", "Bilen var 10 mm lang."),
+        ("Dette er bilen min.", "Dette er bilen min."),
+        ("Trente med PT i dag.", "Trente med PT i dag."),
+        ("Reiste til CA i USA.", "Reiste til CA i USA."),
+        ("Trykk tab for å fortsette.", "Trykk tab for å fortsette."),
+    ],
+)
+def test_abbreviation_variants_and_collision_protections(source: str, expected: str) -> None:
+    assert TextNormalizer().normalize(source) == expected
+
 
