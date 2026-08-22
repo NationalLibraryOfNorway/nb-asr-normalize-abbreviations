@@ -55,7 +55,7 @@ For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresse
 * **Ord- og enhets-skåning:**
   * Ordene `tom` (f.eks. "en tom flaske" / "Tom") skånes (krever punktum som `t.o.m.` / `t.o.m` for `til og med`).
   * Egennavnet `Maks` uten punktum skånes (krever punktum som `maks.` eller tallkontekst som `maks 10` for `maksimalt`).
-  * Eiendomspronomenet `min` (f.eks. "magen min. Det...") skånes (krever numerisk/kontekstuelt følgestreng som `min. 10 kg` eller `maks/min` for `minimum`).
+  * Eiendomspronomenet `min` (f.eks. "magen min. Det...") og skrivemåten `min.` er helt utelatt fra ekspansjon for å unngå tvetydighet og falske positiver.
   * Verbet `bla` ("å bla i boka") og enheten `mm` ("10 mm") skånes fra ekspansjon.
 * **Dynamisk Entall/Flertall for tallstørrelser:**
   * Forkortelser som `mrd.` og `mill.` ekspanderes dynamisk til entall (`1 milliard kr`, `1 million kr`) hvis det foregående tallet er `1`, `1,0` eller et entalls tallord (`en`, `et`, `ei`), og til flertall (`5 milliarder kr`, `5 millioner kr`) ved større tall.
@@ -153,17 +153,16 @@ Følgende tabell inneholder samtlige 43 godkjente norsk prosa-forkortelser. Matc
 | 26 | `inkl\.?` | `inkludert` | `inkl.` $\rightarrow$ `inkludert` |
 | 27 | `ekskl\.?` | `ekskludert` | `ekskl.` $\rightarrow$ `ekskludert` |
 | 28 | `maks\.?` | `maksimalt` | `maks.` $\rightarrow$ `maksimalt` |
-| 29 | `min\.?` | `minimum` | `min.` $\rightarrow$ `minimum` |
-| 30 | `ca\.?` / `cirka\.?` | `cirka` | `ca.` $\rightarrow$ `cirka` |
-| 31 | `evt\.?` / `ev\.?` | `eventuelt` | `evt.` $\rightarrow$ `eventuelt` |
-| 32 | `jf\.?` / `jfr\.?` | `jamfør` | `jfr.` $\rightarrow$ `jamfør` |
-| 33 | `fig\.?` | `figur` | `fig.` $\rightarrow$ `figur` |
-| 34 | `tab\.?` | `tabell` | `tab.` $\rightarrow$ `tabell` |
-| 35 | `kap\.?` | `kapittel` | `kap.` $\rightarrow$ `kapittel` |
-| 36 | `pkt\.?` | `punkt` | `pkt.` $\rightarrow$ `punkt` |
-| 37 | `spm\.?` | `spørsmål` | `spm.` $\rightarrow$ `spørsmål` |
-| 38 | `mill\.?` | `millioner` | `mill.` $\rightarrow$ `millioner` |
-| 39 | `mrd\.?` | `milliarder` | `mrd.` $\rightarrow$ `milliarder` |
+| 29 | `ca\.?` / `cirka\.?` | `cirka` | `ca.` $\rightarrow$ `cirka` |
+| 30 | `evt\.?` / `ev\.?` | `eventuelt` | `evt.` $\rightarrow$ `eventuelt` |
+| 31 | `jf\.?` / `jfr\.?` | `jamfør` | `jfr.` $\rightarrow$ `jamfør` |
+| 32 | `fig\.?` | `figur` | `fig.` $\rightarrow$ `figur` |
+| 33 | `tab\.?` | `tabell` | `tab.` $\rightarrow$ `tabell` |
+| 34 | `kap\.?` | `kapittel` | `kap.` $\rightarrow$ `kapittel` |
+| 35 | `pkt\.?` | `punkt` | `pkt.` $\rightarrow$ `punkt` |
+| 36 | `spm\.?` | `spørsmål` | `spm.` $\rightarrow$ `spørsmål` |
+| 37 | `mill\.?` | `millioner` | `mill.` $\rightarrow$ `millioner` |
+| 38 | `mrd\.?` | `milliarder` | `mrd.` $\rightarrow$ `milliarder` |
 
 ---
 

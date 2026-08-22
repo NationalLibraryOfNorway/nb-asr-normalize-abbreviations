@@ -93,7 +93,6 @@ GENERAL_ABBREVIATIONS: Sequence[tuple[str, str, tuple[str, ...]]] = (
     (r"(?<![\w@-])inkl\.?(?![\w@-])", "inkludert", ()),
     (r"(?<![\w@-])ekskl\.?(?![\w@-])", "ekskludert", ()),
     (r"(?<![\w@-])(?:maks\.|maks(?=\s+\d))(?![\w@-])", "maksimalt", ()),
-    (r"(?<![\w@-])min\.(?=\s*\d|\s*[/–-]\s*\d|[/–-]maks)", "minimum", ()),
     (r"(?<![\w@-])(?:ca\.?)(?![\w@-])", "cirka", ("CA",)),
     (r"(?<![\w@-])(?:evt\.?|ev\.)(?![\w@-])", "eventuelt", ()),
     (r"(?<![\w@-])(?:jf\.?|jfr\.?)(?![\w@-])", "jamfør", ()),
