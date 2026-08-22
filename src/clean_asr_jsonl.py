@@ -88,15 +88,14 @@ GENERAL_ABBREVIATIONS: Sequence[tuple[str, str, tuple[str, ...]]] = (
     (r"(?<![\w@-])(?:f\.\s*t\.?|f\.t\.?|ft\.)(?![\w@-])", "for tiden", ("FT",)),
     (r"(?<![\w@-])(?:d\.\s*d\.?|d\.d\.?|dd\.)(?![\w@-])", "dags dato", ()),
     (r"(?<![\w@-])(?:s\.\s*d\.?|s\.d\.?|sd\.)(?![\w@-])", "se denne", ()),
-    (r"(?<![\w@-])(?:h\.?\s*h\.?\s*v\.?|hhv\.?)(?![\w@-])", "henholdsvis", ()),
     (r"(?<![\w@-])vedr\.?(?![\w@-])", "vedrørende", ()),
-    (r"(?<![\w@-])ang\.?(?![\w@-])", "angående", ()),
+    (r"(?<![\w@-])ang\.(?=\s*[:\s][a-zæøå\d])(?![\w@-])", "angående", ()),
     (r"(?<![\w@-])inkl\.?(?![\w@-])", "inkludert", ()),
     (r"(?<![\w@-])ekskl\.?(?![\w@-])", "ekskludert", ()),
     (r"(?<![\w@-])(?:maks\.|maks(?=\s+\d))(?![\w@-])", "maksimalt", ()),
     (r"(?<![\w@-])min\.(?=\s*\d|\s*[/–-]\s*\d|[/–-]maks)", "minimum", ()),
     (r"(?<![\w@-])(?:ca\.?)(?![\w@-])", "cirka", ("CA",)),
-    (r"(?<![\w@-])(?:evt\.?|ev\.?)(?![\w@-])", "eventuelt", ()),
+    (r"(?<![\w@-])(?:evt\.?|ev\.)(?![\w@-])", "eventuelt", ()),
     (r"(?<![\w@-])(?:jf\.?|jfr\.?)(?![\w@-])", "jamfør", ()),
     (r"(?<![\w@-])fig\.?(?![\w@-])", "figur", ()),
     (r"(?<![\w@-])tab\.(?![\w@-])", "tabell", ()),
@@ -329,18 +328,32 @@ class TextNormalizer:
             clean_val = val.rstrip(".")
             if clean_val.isupper() and len(clean_val) >= 2:
                 return val
-            if val in preserve_caps:
+            if val in preserve_caps or val in ("Mao", "Maks", "Ang", "Maks."):
                 return val
+            if val.startswith(("Mao", "Maks", "Ang")) and not val.endswith("."):
+                return val
+
             tail = full_text[match.end():]
-            if re.match(r"^\s+[A-ZÆØÅ]", tail):
-                return val
+            is_sentence_final = val.endswith(".") and (
+                not tail
+                or tail.startswith("\n")
+                or bool(re.match(r"^[\]\)\"\']", tail))
+                or not tail.strip()
+                or bool(re.match(r"^\s+[A-ZÆØÅ]", tail))
+            )
+
             prefix = full_text[:match.start()].rstrip()
             res = replacement
             if replacement in ("milliarder", "millioner"):
                 if re.search(r"(?:\b1(?:[,.]0+)?|\ben|\bet|\bei)\s*$", prefix, re.IGNORECASE):
                     res = "milliard" if replacement == "milliarder" else "million"
+
             if val[0].isupper():
-                return res[0].upper() + res[1:]
+                res = res[0].upper() + res[1:]
+
+            if is_sentence_final and not res.endswith("."):
+                res += "."
+
             return res
 
         return sub_func
@@ -376,6 +389,7 @@ class TextNormalizer:
         r"<NUM>"
         r"|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b"
         r"|\b\d{4}-\d{2}-\d{2}\b"
+        r"|\b(?:[1-9]|[12]\d|3[01])\.(?:[1-9]|1[02])\b"
         r"|(?<![\w<])\d+(?:\.\d+){2,}\b"
         r")"
         r"|"
@@ -408,13 +422,27 @@ class TextNormalizer:
         return " ".join(chunks)
 
     @classmethod
-    def _is_time_of_day(cls, val: str, full_text: str, start_pos: int) -> bool:
+    def _is_protected_number(cls, val: str, full_text: str, start_pos: int) -> bool:
         prefix = full_text[:start_pos].rstrip()
+
+        # 1. Short dates like 17.5, 1.5, 24.12
+        if re.match(r"^(?:[1-9]|[12]\d|3[01])\.(?:[1-9]|1[02])$", val):
+            return True
+
+        # 2. Times like 06.23, 22.55, kl. 08.30
         if re.search(r"(?:\bkl\.?|\bklokken)\s*$", prefix, re.IGNORECASE):
             return True
-        m = re.match(r"^(?P<hour>1[3-9]|2[0-3])\.(?P<min>[0-5]\d)$", val)
-        if m:
+        if re.match(r"^(?:0\d|1\d|2[0-3])\.[0-5]\d$", val):
             return True
+
+        # 3. Version numbers like v3.0, Python 3.0, iOS 14.2
+        if re.search(r"(?:\bv\.?|\bversjon|\bversion|\bpython|\bios|\bandroid|\bwindows)\s*$", prefix, re.IGNORECASE):
+            return True
+
+        # 4. Section / Paragraph / Reference numbers like pkt. 2.78, nr. 2.78, § 2.78
+        if re.search(r"(?:\bpkt\.?|\bnr\.?|\bparagraf|\b§|\bkap\.?|\bstk\.?|\bref\.?|\bside|\blinje)\s*$", prefix, re.IGNORECASE):
+            return True
+
         return False
 
     @classmethod
@@ -435,7 +463,7 @@ class TextNormalizer:
 
         if raw_dec and raw_dec.startswith("."):
             num_str = raw_int + raw_dec
-            if cls._is_time_of_day(num_str, full_text, match.start()):
+            if cls._is_protected_number(num_str, full_text, match.start()):
                 return num_str
 
         clean_digits = raw_int.replace(".", "").replace(" ", "").replace("\u00a0", "")

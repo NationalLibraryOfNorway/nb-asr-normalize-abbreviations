@@ -12,7 +12,7 @@ def test_expands_common_abbreviations() -> None:
     normalizer = TextNormalizer()
 
     assert normalizer.normalize("Det var f.eks. relevant, o.s.v.") == (
-        "Det var for eksempel relevant, og så videre"
+        "Det var for eksempel relevant, og så videre."
     )
 
 
