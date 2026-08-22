@@ -389,30 +389,20 @@ class TextNormalizer:
         r"<NUM>"
         r"|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b"
         r"|\b\d{4}-\d{2}-\d{2}\b"
-        r"|\b(?:[1-9]|[12]\d|3[01])\.(?:[1-9]|1[02])\b"
         r"|(?<![\w<])\d+(?:\.\d+){2,}\b"
         r")"
         r"|"
         r"(?<![\w<.])"
         r"(?P<sign>[+-])?"
-        r"(?P<integer>"
-        r"\d{1,3}(?:\.\d{3})+"
-        r"|"
-        r"\d{1,3}(?:[ \u00a0]\d{3})+"
-        r"|"
-        r"\d+"
-        r")"
-        r"(?P<decimal>[.,]\d+)?"
-        r"(?![a-zA-Z>])"
+        r"(?P<integer>\d{5,})"
+        r"(?![a-zA-Z>\d])"
     )
 
     _PERIOD_THOUSAND_PATTERN = re.compile(r"^[+-]?\d{1,3}(?:\.\d{3})+$")
 
     @staticmethod
-    def _format_digits(digits: str, has_decimal: bool = False) -> str:
-        if not has_decimal and len(digits) == 4 and 1500 <= int(digits) <= 2100:
-            return digits
-        if len(digits) < 4:
+    def _format_digits(digits: str) -> str:
+        if len(digits) < 5:
             return digits
         n = len(digits)
         first_len = n % 3 or 3
@@ -422,55 +412,15 @@ class TextNormalizer:
         return " ".join(chunks)
 
     @classmethod
-    def _is_protected_number(cls, val: str, full_text: str, start_pos: int) -> bool:
-        prefix = full_text[:start_pos].rstrip()
-
-        # 1. Short dates like 17.5, 1.5, 24.12
-        if re.match(r"^(?:[1-9]|[12]\d|3[01])\.(?:[1-9]|1[02])$", val):
-            return True
-
-        # 2. Times like 06.23, 22.55, kl. 08.30
-        if re.search(r"(?:\bkl\.?|\bklokken)\s*$", prefix, re.IGNORECASE):
-            return True
-        if re.match(r"^(?:0\d|1\d|2[0-3])\.[0-5]\d$", val):
-            return True
-
-        # 3. Version numbers like v3.0, Python 3.0, iOS 14.2
-        if re.search(r"(?:\bv\.?|\bversjon|\bversion|\bpython|\bios|\bandroid|\bwindows)\s*$", prefix, re.IGNORECASE):
-            return True
-
-        # 4. Section / Paragraph / Reference numbers like pkt. 2.78, nr. 2.78, § 2.78
-        if re.search(r"(?:\bpkt\.?|\bnr\.?|\bparagraf|\b§|\bkap\.?|\bstk\.?|\bref\.?|\bside|\blinje)\s*$", prefix, re.IGNORECASE):
-            return True
-
-        return False
-
-    @classmethod
     def _replace_number_match(cls, match: re.Match[str], full_text: str) -> str:
         skip_val = match.group("skip")
         if skip_val:
-            if cls._PERIOD_THOUSAND_PATTERN.match(skip_val):
-                digits = skip_val.replace(".", "")
-                sign = ""
-                if digits.startswith(("+", "-")):
-                    sign, digits = digits[0], digits[1:]
-                return sign + cls._format_digits(digits, has_decimal=False)
             return skip_val
 
         sign = match.group("sign") or ""
         raw_int = match.group("integer")
-        raw_dec = match.group("decimal")
-
-        if raw_dec and raw_dec.startswith("."):
-            num_str = raw_int + raw_dec
-            if cls._is_protected_number(num_str, full_text, match.start()):
-                return num_str
-
-        clean_digits = raw_int.replace(".", "").replace(" ", "").replace("\u00a0", "")
-        formatted_int = cls._format_digits(clean_digits, has_decimal=bool(raw_dec))
-
-        formatted_dec = ("," + raw_dec[1:]) if raw_dec else ""
-        return f"{sign}{formatted_int}{formatted_dec}"
+        formatted_int = cls._format_digits(raw_int)
+        return f"{sign}{formatted_int}"
 
     def _normalize_number_format(self, text: str) -> str:
         return self._COMBINED_NUMBER_PATTERN.sub(

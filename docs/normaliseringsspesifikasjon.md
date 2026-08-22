@@ -65,22 +65,16 @@ For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresse
 
 ---
 
-### 2.3 Norsk Tallformatering (Tusenskille, Desimalskilletegn og Årstall)
-På norsk brukes enkelt mellomrom som tusenskille og komma som desimalskilletegn. Normaliseringen utfører følgende tilpasninger:
+### 2.3 Norsk Tallformatering (Tusenskille for 5-sifrede og større tall)
+For å unngå feilaktig endring av 4-sifrede årstall (som `1492`, `1976`, `2024`), århundrer (`1200-tallet`), klokkeslett/sportstider (`3.56`, `7.30`), versjonsnumre (`2.0`), og feilformaterte sekvenser (`29.2015`), utføres tallformatering **kun på heltall med 5 eller flere siffer**:
 
-1. **Tusenskille for 4-sifrede og større tall:**
-   * Firesifrede heltall og større tall grupperes med mellomrom fra høyre i puljer på 3 siffer (`25000` $\rightarrow$ `25 000`, `1000000` $\rightarrow$ `1 000 000`).
-2. **Årstallsbeskyttelse (1500–2100):**
-   * Frittstående 4-sifrede heltall i årstallsintervallet **1500 til 2100** (f.eks. `1976`, `2016`, `2020`, `2016-2020`) skånes for tusenskilleinnsetting for å forhindre feilformatering av årstall (`1976` bevares, uendret fra `1 976`).
-3. **Klokkeslett- og tidspunktbeskyttelse:**
-   * 4-sifrede klokkeslett (som `22.55` eller `kl. 08.30`) bevares med punktum og konverteres ikke til desimalkomma.
-4. **Feilaktige punktum-tusenskiller:**
-   * Punktum brukt uanbefalt som tusenskille erstattes med mellomrom når det etterfølges av nøyaktig 3 siffer (`1.000.000` $\rightarrow$ `1 000 000`).
-5. **Desimalskilletegn:**
-   * Komma `,` er standard desimalskilletegn på norsk (`0.5` $\rightarrow$ `0,5`, `1234.56` $\rightarrow$ `1 234,56`).
-6. **Datoer (Kanonisering til DD.MM.YYYY):**
+1. **Tusenskille for 5-sifrede og større tall:**
+   * Heltall med 5 eller flere siffer grupperes med mellomrom fra høyre i puljer på 3 siffer (`10000` $\rightarrow$ `10 000`, `25000` $\rightarrow$ `25 000`, `1000000` $\rightarrow$ `1 000 000`).
+2. **Beskyttelse av 4-sifrede tall og punktumnumre:**
+   * Alle 1-, 2-, 3- og 4-sifrede tall (f.eks. `1492`, `1600`, `1200-tallet`, `2020`), samt desimal- og tidspunktsikre punktumuttrykk (`3.56`, `2.0`, `7.30`, `29.2015`), bevares 100 % uendret for å garantere null falske positiver.
+3. **Datoer (Kanonisering til DD.MM.YYYY):**
    * Ulike datoskrivemåter som ISO-format (`YYYY-MM-DD`), skråstrek (`DD/MM/YYYY`), bindestrek (`DD-MM-YYYY`) og ufullstendig nullpolstrede datoer (`D.M.YYYY` / `D/M/YYYY`) normeres til det offisielle norske datoformatet `DD.MM.YYYY`.
-7. **Kjøringsvalg:** Tall- og datonormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
+4. **Kjøringsvalg:** Tall- og datonormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
 
 ---
 
