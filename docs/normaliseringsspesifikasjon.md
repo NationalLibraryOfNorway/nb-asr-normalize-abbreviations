@@ -45,54 +45,42 @@ Måleenheter og enhetsforkortelser skal **kun** konverteres dersom de umiddelbar
 ### 2.2 Ord-, Tegn- og Kapitaliserings-grenser (Boundary Matching og Kollisjonssikring)
 For å forhindre feilaktig erstatning midt i ord, sammensatte ord, e-postadresser, egennavn eller ubeslektede versalforkortelser, benyttes følgende regler:
 
-* **Variant-matching:** Mønstre fanger opp alle vanlige skrivemåter uavhengig av om de har punktum eller ustandardiserte sammentrekninger (f.eks. `osv.`, `osv`, `o.s.v.`, `feks`, `f.eks.`, `pga`, `p.g.a.`).
-* **Versalsikring (ALL-CAPS protection):** Forkortelser som kolliderer med internasjonale forkortelser eller organisasjonsnavn bevares uendret når de står i versaler uten punktum:
-  * `PGA` (f.eks. `PGA Tour` / `PGA-touren`) bevares som `PGA`, mens `pga` / `Pga` / `p.g.a.` ekspanderes til `på grunn av` / `På grunn av`.
-  * `OL` (f.eks. `OL på Lillehammer`) bevares som `OL`, mens `o.l.` / `o.l` / `ol.` ekspanderes til `og lignende`.
-  * `PT` (`Personal Trainer`), `CA` (`California`), `FT` (`Financial Times`) og `DVS` bevares uendret når de står i versaler uten punktum.
-* **Ord- og enhets-skåning:** Norske ord eller SI-enheter som faller sammen med usammensatte bokstavmønstre uten punktum skånes fra ekspansjon:
+* **Variant-matching og Versalsikring (ALL-CAPS protection):**
+  * Alle forkortelser i versaler (ALL-CAPS), både med og uten punktum (f.eks. `OL.`, `OL`, `PT.`, `PT`, `PGA.`, `PGA`, `DVS.`, `DVS`, `CA.`, `CA`, `FT.`, `FT`), bevares uendret for å forhindre kollisjon med organisasjonsnavn, forkortelser og faguttrykk.
+  * Tittelkasserte og lavere varianter (`pga`, `Pga`, `o.s.v.`, `osv`) ekspanderes trygt.
+* **Mellomrom + Stor bokstav ved setningsavslutning:**
+  * Hvis en forkortelse (f.eks. `osv.`) står i en kontekst etterfulgt av mellomrom og stor bokstav (f.eks. `osv. Katten...`), bevares forkortelsen uendret for å unngå usikre setningsgrenseerstatninger.
+* **Bindestrek- og sammensatte ord (Compound Word Protection):**
+  * Grense-matching benytter `(?<![\w@-])` og `(?![\w@-])` for å hindre at forkortelser matcher inne i sammensatte fagord med bindestrek (f.eks. `osb-plater`, `e-post`, `it-ansvarlig`).
+* **Ord- og enhets-skåning:**
   * Ordene `tom` (f.eks. "en tom flaske" / "Tom") skånes (krever punktum som `t.o.m.` / `t.o.m` for `til og med`).
-  * Verbet `bla` ("å bla i boka") skånes (krever punktum som `bl.a.` / `bl.a`).
-  * Måleenheten `mm` ("10 mm") skånes (krever punktum som `m.m.` for `med mer`).
-  * Eiendomspronomenet `min` ("bilen min.") skånes (krever punktum etterfulgt av mellomrom/tall/ord som `min. 10` for `minimum`).
-  * Ordene `el` ("el-bil") og `tab` ("trykk tab") skånes.
+  * Egennavnet `Maks` uten punktum skånes (krever punktum som `maks.` eller tallkontekst som `maks 10` for `maksimalt`).
+  * Eiendomspronomenet `min` (f.eks. "magen min. Det...") skånes (krever numerisk/kontekstuelt følgestreng som `min. 10 kg` eller `maks/min` for `minimum`).
+  * Verbet `bla` ("å bla i boka") og enheten `mm` ("10 mm") skånes fra ekspansjon.
+* **Dynamisk Entall/Flertall for tallstørrelser:**
+  * Forkortelser som `mrd.` og `mill.` ekspanderes dynamisk til entall (`1 milliard kr`, `1 million kr`) hvis det foregående tallet er `1`, `1,0` eller et entalls tallord (`en`, `et`, `ei`), og til flertall (`5 milliarder kr`, `5 millioner kr`) ved større tall.
 * **Regeluttrykk:**
-  * **Prosa-forkortelser:** $\texttt{(?<![\w@])<mønster>(?![\w@])}$
+  * **Prosa-forkortelser:** $\texttt{(?<![\w@-])<mønster>(?![\w@-])}$
   * **Måleenheter:** $\texttt{(?<![\w>])<NUMBER\_PATTERN>\s+<enhetsmønster>(?![\w/])}$
 
 ---
 
-### 2.3 Norsk Tallformatering (Tusenskille og desimalskilletegn)
+### 2.3 Norsk Tallformatering (Tusenskille, Desimalskilletegn og Årstall)
 På norsk brukes enkelt mellomrom som tusenskille og komma som desimalskilletegn. Normaliseringen utfører følgende tilpasninger:
 
 1. **Tusenskille for 4-sifrede og større tall:**
-   * Firesifrede heltall og større tall grupperes med mellomrom fra høyre i puljer på 3 siffer.
-   * `1000` $\rightarrow$ `1 000`
-   * `25000` $\rightarrow$ `25 000`
-   * `1000000` $\rightarrow$ `1 000 000`
-   * `12345678` $\rightarrow$ `12 345 678`
-2. **Feilaktige punktum-tusenskiller:**
-   * Punktum brukt uanbefalt som tusenskille erstattes med mellomrom når det etterfølges av nøyaktig 3 siffer.
-   * `1.000` $\rightarrow$ `1 000`
-   * `1.000.000` $\rightarrow$ `1 000 000`
-3. **Desimalskilletegn:**
-   * Komma `,` er standard desimalskilletegn på norsk.
-   * Punktum brukt som desimalskilletegn etter et tall konverteres til komma.
-   * `0.5` $\rightarrow$ `0,5`
-   * `1234.56` $\rightarrow$ `1 234,56`
-   * `1000,5` $\rightarrow$ `1 000,5`
-4. **Datoer (Kanonisering til DD.MM.YYYY):**
+   * Firesifrede heltall og større tall grupperes med mellomrom fra høyre i puljer på 3 siffer (`25000` $\rightarrow$ `25 000`, `1000000` $\rightarrow$ `1 000 000`).
+2. **Årstallsbeskyttelse (1500–2100):**
+   * Frittstående 4-sifrede heltall i årstallsintervallet **1500 til 2100** (f.eks. `1976`, `2016`, `2020`, `2016-2020`) skånes for tusenskilleinnsetting for å forhindre feilformatering av årstall (`1976` bevares, uendret fra `1 976`).
+3. **Klokkeslett- og tidspunktbeskyttelse:**
+   * 4-sifrede klokkeslett (som `22.55` eller `kl. 08.30`) bevares med punktum og konverteres ikke til desimalkomma.
+4. **Feilaktige punktum-tusenskiller:**
+   * Punktum brukt uanbefalt som tusenskille erstattes med mellomrom når det etterfølges av nøyaktig 3 siffer (`1.000.000` $\rightarrow$ `1 000 000`).
+5. **Desimalskilletegn:**
+   * Komma `,` er standard desimalskilletegn på norsk (`0.5` $\rightarrow$ `0,5`, `1234.56` $\rightarrow$ `1 234,56`).
+6. **Datoer (Kanonisering til DD.MM.YYYY):**
    * Ulike datoskrivemåter som ISO-format (`YYYY-MM-DD`), skråstrek (`DD/MM/YYYY`), bindestrek (`DD-MM-YYYY`) og ufullstendig nullpolstrede datoer (`D.M.YYYY` / `D/M/YYYY`) normeres til det offisielle norske datoformatet `DD.MM.YYYY`.
-   * `17/05/1814` $\rightarrow$ `17.05.1814`
-   * `2026-08-19` $\rightarrow$ `19.08.2026`
-   * `19-08-2026` $\rightarrow$ `19.08.2026`
-   * `10.5.1814` $\rightarrow$ `10.05.1814`
-   * `1/5/1814` $\rightarrow$ `01.05.1814`
-5. **Andre skåneregler (Edge cases):**
-   * **Ordenstall:** Punktum etter tall etterfulgt av mellomrom og bokstav/ord (f.eks. `17. mai`, `1. plass`, `20. århundre`) representerer ordenstall og skal bevares uendret.
-   * **Plassholdere:** Spesialtegn som `<NUM>` berøres ikke.
-   * **Versjonsnumre og IP-adresser:** Tekst som `v1.0.0` og `192.168.1.1` skal ikke endres.
-6. **Kjøringsvalg:** Tall- og datonormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
+7. **Kjøringsvalg:** Tall- og datonormalisering er **aktivert som standard**. Den kan deaktiveres ved å sende inn kommandolinjeflagget `--ignore_number_normalisations` (eller aliaset `--no_normalize_numbers`).
 
 ---
 
